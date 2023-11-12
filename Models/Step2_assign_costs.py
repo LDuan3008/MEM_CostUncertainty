@@ -184,7 +184,7 @@ def year2050_run(single_year_index, case_dic, tech_list, case_name_default, co2_
         for i in range(loop_idx):
             tech_list[loop_loc[i]]['fixed_cost'] = items[i]
         if ensem_idx >= starting_point and ensem_idx < starting_point+100:
-            case_name_output = f'{case_name_default}_Scenarios2050_GeoMax03_{str(ensem_idx)}'
+            case_name_output = f'{case_name_default}_Scenarios2050_{str(ensem_idx)}'
             pass_variables(single_year_index, case_dic, tech_list, co2_constraints_list, co2_constraints_percentage, case_name_output, info_idx)
         ensem_idx += 1
 
@@ -359,9 +359,9 @@ def year2050_GeoRepeat(single_year_index, case_dic, tech_list, case_name_default
         if name == 'nuclear':                                                                    tech_list[idx]['fixed_cost'] = nuclear_fixed_year2050_NNN
         if name == 'storage':                                                                    tech_list[idx]['fixed_cost'] = storage_fixed_year2050_NNN
         if name == 'geothermal':                                                                 tech_list[idx]['fixed_cost'] = geothermal_fixed_year2050_NNN;  info_idx['geo_idx'] = idx
-        if name == 'to_PGP':                                                                     tech_list[idx]['fixed_cost'] = to_PGP_fixed_year2050_NNN
-        if name == 'PGP_storage':                                                                tech_list[idx]['fixed_cost'] = PGP_storage_fixed_year2050_NNN
-        if name == 'from_PGP':                                                                   tech_list[idx]['fixed_cost'] = from_PGP_fixed_year2050_NNN
+        # if name == 'to_PGP':                                                                     tech_list[idx]['fixed_cost'] = to_PGP_fixed_year2050_NNN
+        # if name == 'PGP_storage':                                                                tech_list[idx]['fixed_cost'] = PGP_storage_fixed_year2050_NNN
+        # if name == 'from_PGP':                                                                   tech_list[idx]['fixed_cost'] = from_PGP_fixed_year2050_NNN
     
     # geotherm_cap_constraint = np.array([0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5])
     geotherm_cap_constraint = np.array([0])
@@ -416,3 +416,81 @@ def pass_variables(single_year_index,
         sys.exit() 
         
 ###################################################################################################################################################################################
+
+solar_fixed_year20502   = [5.794755718 / 1000 * 0.3, 5.794755718 / 1000 * 0.5, 5.794755718 / 1000 * 0.7]
+wind_fixed_year20502    = [7.569390621 / 1000 * 0.3, 7.569390621 / 1000 * 0.5, 7.569390621 / 1000 * 0.7]
+storage_fixed_year20502 = [1.904751567 / 1000 * 0.3, 1.904751567 / 1000 * 0.5, 1.904751567 / 1000 * 0.7]
+
+def year2050_ExtraLow_run(single_year_index, case_dic, tech_list, case_name_default, co2_emis_natgas, starting_point):
+
+    pool_list = ['natgas_ccs', 'solar', 'wind', 'storage', 'offwind', 'geothermal', 'to_PGP']
+    info_idx = {}
+    info_idx['solar_flag'  ] = False
+    info_idx['wind_flag'   ] = False
+    info_idx['offwind_flag'] = False
+    loop_var = []
+    loop_loc = {}
+    loop_idx = 0
+    for idx in range(len(tech_list)):
+        name = tech_list[idx]['tech_name']
+        if name in pool_list:
+            if name == 'natgas_ccs': loop_loc[loop_idx] = idx; loop_idx +=1; loop_var += [natgas_CCS_fixed_year2050]; tech_list[idx]['var_cost'] = natgas_CCS_var_year2050
+            if name == 'offwind':    loop_loc[loop_idx] = idx; loop_idx +=1; loop_var += [offwind_fixed_year2050   ]; info_idx['offwind_idx'] = idx; info_idx['offwind_flag'] = True
+            if name == 'geothermal': loop_loc[loop_idx] = idx; loop_idx +=1; loop_var += [geothermal_fixed_year2050]
+            if name == 'solar':      loop_loc[loop_idx] = idx; loop_idx +=1; loop_var += [solar_fixed_year20502    ]; info_idx['solar_idx'  ] = idx; info_idx['solar_flag'  ] = True
+            if name == 'wind':       loop_loc[loop_idx] = idx; loop_idx +=1; loop_var += [wind_fixed_year20502     ]; info_idx['wind_idx'   ] = idx; info_idx['wind_flag'   ] = True
+            if name == 'storage':    loop_loc[loop_idx] = idx; loop_idx +=1; loop_var += [storage_fixed_year20502   ]
+        else:
+            if name == 'demand':     info_idx['demand_idx']  = idx
+            if name == 'natgas':                                                                     tech_list[idx]['fixed_cost'] = natgas_fixed_year2050;     tech_list[idx]['var_cost'] = natgas_var_year2050
+            if name == 'biopower':                                                                   tech_list[idx]['fixed_cost'] = biopower_fixed_year2050;   tech_list[idx]['var_cost'] = biopower_var_year2050
+            if name == 'nuclear':                                                                    tech_list[idx]['fixed_cost'] = nuclear_fixed_year2050
+
+    co2_constraints_percentage = np.array([0.0]) 
+    upper_co2_emissions = 8760 * 1 * co2_emis_natgas
+    co2_constraints_list = upper_co2_emissions * co2_constraints_percentage / 100
+
+    print ()
+    print ()
+    print (loop_var) 
+    print (loop_loc) 
+    print (loop_idx) 
+
+    ensem_idx = 0
+    for items in product(*loop_var):
+        for i in range(loop_idx):
+            tech_list[loop_loc[i]]['fixed_cost'] = items[i]
+        if ensem_idx >= starting_point and ensem_idx < starting_point+20:
+            case_name_output = f'{case_name_default}_Scenarios2050_ExtraLow_{str(ensem_idx)}'
+            pass_variables(single_year_index, case_dic, tech_list, co2_constraints_list, co2_constraints_percentage, case_name_output, info_idx)
+        ensem_idx += 1
+    
+
+###################################################################################################################################################################################
+# single_year_index is the weather and demand year
+
+def year2019_ExpCcs_run(single_year_index, case_dic, tech_list, case_name_default, co2_emis_natgas):
+    info_idx = {}
+    info_idx['solar_flag'  ] = False
+    info_idx['wind_flag'   ] = False
+    info_idx['offwind_flag'] = False
+    for idx in range(len(tech_list)):
+        name = tech_list[idx]['tech_name']
+        if name == 'demand':     info_idx['demand_idx']  = idx
+        # if name == 'natgas':                                                                     tech_list[idx]['fixed_cost'] = natgas_fixed_year2019;     tech_list[idx]['var_cost'] = natgas_var_year2019
+        # if name == 'natgas_ccs':                                                                 tech_list[idx]['fixed_cost'] = natgas_CCS_fixed_year2019; tech_list[idx]['var_cost'] = natgas_CCS_var_year2019
+        if name == 'natgas':                                                                     tech_list[idx]['fixed_cost'] = natgas_fixed_year2019;     tech_list[idx]['var_cost'] = 0.02097
+        if name == 'natgas_ccs':                                                                 tech_list[idx]['fixed_cost'] = natgas_CCS_fixed_year2019; tech_list[idx]['var_cost'] = 0.027192
+        if name == 'biopower':                                                                   tech_list[idx]['fixed_cost'] = biopower_fixed_year2019;   tech_list[idx]['var_cost'] = biopower_var_year2019
+        if name == 'solar':      info_idx['solar_idx'] = idx;   info_idx['solar_flag'] = True;   tech_list[idx]['fixed_cost'] = solar_fixed_year2019
+        if name == 'wind':       info_idx['wind_idx'] = idx;    info_idx['wind_flag'] = True;    tech_list[idx]['fixed_cost'] = wind_fixed_year2019
+        if name == 'offwind':    info_idx['offwind_idx'] = idx; info_idx['offwind_flag'] = True; tech_list[idx]['fixed_cost'] = offwind_fixed_year2019[1]
+        if name == 'nuclear':                                                                    tech_list[idx]['fixed_cost'] = nuclear_fixed_year2019
+        if name == 'storage':                                                                    tech_list[idx]['fixed_cost'] = storage_fixed_year2019
+        if name == 'geothermal':                                                                 tech_list[idx]['fixed_cost'] = geothermal_fixed_year2019
+    co2_constraints_percentage = np.array([1e24, 98, 96, 94, 92, 90, 88, 86, 84, 82, 80, 78, 76, 74, 72, 70, 68, 66, 64, 62, 60, 58, 56, 54, 52, 50, 48, 46, 44, 42, 40, 38, 36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8,  6,  4,  2,  1, 0.1, 0.01, 0])
+    upper_co2_emissions = 8760 * 1 * co2_emis_natgas
+    co2_constraints_list = upper_co2_emissions * co2_constraints_percentage / 100
+    case_name_output = f'{case_name_default}_Scenarios2019_ExpCcs'
+    pass_variables(single_year_index, case_dic, tech_list, co2_constraints_list, co2_constraints_percentage, case_name_output, info_idx)
+

@@ -10,6 +10,8 @@ from Preprocess_Input import preprocess_input
 import numpy as np
 
 
+from Step2_assign_costs import year2019_ExpCcs_run
+
 
 if __name__ == '__main__':
 
@@ -29,7 +31,7 @@ if __name__ == '__main__':
     ### Set basic information
     case_name_default = case_dic['case_name']
     case_dic['num_time_periods'] = 8760
-    case_dic['output_path'] = '/data/carnegie/leiduan/cesm_archive/MEM_CostUncertainty'
+    case_dic['output_path'] = 'tmp_outputs/'
     for idx in range(len(tech_list)): 
         name = tech_list[idx]['tech_name']
         if name == 'natgas':  co2_emis_natgas = tech_list[idx]['var_co2']
@@ -46,6 +48,8 @@ if __name__ == '__main__':
         year2050_repeat(single_year_index, case_dic, tech_list, case_name_default, co2_emis_natgas, starting_point)
     elif flag_scenario == 20504:
         year2050_GeoRepeat(single_year_index, case_dic, tech_list, case_name_default, co2_emis_natgas, starting_point)
+    if flag_scenario == 20192: 
+        year2019_ExpCcs_run(single_year_index, case_dic, tech_list, case_name_default, co2_emis_natgas)
     else:
         print ('flag_scenario should be either 2019 or 2050') 
         print ('no optimization is conducted')
